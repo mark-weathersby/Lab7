@@ -13,7 +13,15 @@ public class MyClient
 {
 	MyClient() {
 		JFrame mainFrame = new JFrame();
-		JPanel JPCenter = new JPanel();
+		JPanel jpCenter = new JPanel();
+		JPanel jpSouth = new JPanel();
+		JButton jbSend = new JButton("SEND");
+		JTextArea jtaMessage = new JTextArea();
+		JScrollPane jsaScroll = new JScrollPane(jtaMessage);
+		mainFrame.add(jpCenter, BorderLayout.CENTER);
+		mainFrame.add(jpSouth, BorderLayout.SOUTH);
+		jpCenter.add(jsaScroll, BorderLayout.CENTER);
+		jpSouth.add(jbSend, BorderLayout.CENTER);
 		mainFrame.setSize(500, 500);
 		mainFrame.setVisible(true);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
