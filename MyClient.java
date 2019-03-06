@@ -21,6 +21,8 @@ public class MyClient
 	public static void main(String [] args)
 	{
 		try{
+			
+			new MyClient();
 			System.out.println("getLocalHost: "+InetAddress.getLocalHost() );
 			System.out.println("getByName:    "+InetAddress.getByName("localhost") );
 			Socket s = new Socket( args[0], 16789);
