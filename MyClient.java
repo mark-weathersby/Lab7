@@ -1,4 +1,9 @@
 import java.net.*;
+import java.awt.*;
+import javax.swing.*;
+
+import javax.swing.JFrame;
+
 import java.io.*;
 
 /* SHOULD ONLY COMMIT TO GUI
@@ -6,6 +11,13 @@ import java.io.*;
 
 public class MyClient
 {
+	MyClient() {
+		JFrame mainFrame = new JFrame();
+		JPanel JPCenter = new JPanel();
+		mainFrame.setSize(500, 500);
+		mainFrame.setVisible(true);
+		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
 	public static void main(String [] args)
 	{
 		try{
