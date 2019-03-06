@@ -1,8 +1,7 @@
 import java.net.*;
 import java.io.*;
 
-/* MyClient - Demo of client / server network communication
-	by: Michael Floeser
+/* SHOULD ONLY COMMIT TO GUI
 */
 
 public class MyClient
