@@ -11,17 +11,22 @@ import java.io.*;
 
 public class MyClient
 {
-	MyClient() {
+	public MyClient() {
 		JFrame mainFrame = new JFrame();
-		JPanel jpCenter = new JPanel();
 		JPanel jpSouth = new JPanel();
 		JButton jbSend = new JButton("SEND");
-		JTextArea jtaMessage = new JTextArea();
+		JTextArea jtaMessage = new JTextArea("test test test");
 		JScrollPane jsaScroll = new JScrollPane(jtaMessage);
-		mainFrame.add(jpCenter, BorderLayout.CENTER);
+		JTextField jtfMessageInput = new JTextField();
+		//jtfMessageInput.setSize(10, 100);
+		jpSouth.setLayout(new BorderLayout());
 		mainFrame.add(jpSouth, BorderLayout.SOUTH);
-		jpCenter.add(jsaScroll, BorderLayout.CENTER);
+		mainFrame.add(jsaScroll, BorderLayout.CENTER);
 		jpSouth.add(jbSend, BorderLayout.CENTER);
+		jpSouth.add(jtfMessageInput, BorderLayout.NORTH);
+		jtaMessage.setSize(300, 300);
+		jsaScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+		jsaScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		mainFrame.setSize(500, 500);
 		mainFrame.setVisible(true);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
