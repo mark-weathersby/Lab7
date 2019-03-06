@@ -9,9 +9,6 @@ public class MyClient
 {
 	public static void main(String [] args)
 	{
-		//Test Comment
-		//Test Comment 2
-	    // Test Jake Commit
 		try{
 			System.out.println("getLocalHost: "+InetAddress.getLocalHost() );
 			System.out.println("getByName:    "+InetAddress.getByName("localhost") );
