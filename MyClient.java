@@ -23,7 +23,6 @@ public class MyClient
 		try{
 			System.out.println("getLocalHost: "+InetAddress.getLocalHost() );
 			System.out.println("getByName:    "+InetAddress.getByName("localhost") );
-			//test 123 Jake
 			Socket s = new Socket( args[0], 16789);
 			InputStream in = s.getInputStream();
 			OutputStream out = s.getOutputStream();
