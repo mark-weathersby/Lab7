@@ -15,7 +15,7 @@ public class MyClient
 		JFrame mainFrame = new JFrame();
 		JPanel jpSouth = new JPanel();
 		JButton jbSend = new JButton("SEND");
-		JTextArea jtaMessage = new JTextArea("test test test");
+		JTextArea jtaMessage = new JTextArea("Please enter sever IP in message box below.");
 		JScrollPane jsaScroll = new JScrollPane(jtaMessage);
 		JTextField jtfMessageInput = new JTextField();
 		//jtfMessageInput.setSize(10, 100);
@@ -25,6 +25,7 @@ public class MyClient
 		jpSouth.add(jbSend, BorderLayout.CENTER);
 		jpSouth.add(jtfMessageInput, BorderLayout.NORTH);
 		jtaMessage.setSize(300, 300);
+		jtaMessage.setEditable(false);
 		jsaScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		jsaScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		mainFrame.setSize(500, 500);
