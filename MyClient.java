@@ -63,22 +63,23 @@ public class MyClient extends Thread implements ActionListener
 	{
 		JFrame initFrame = new JFrame("Please enter server IP");
 		
-		while(ipSet == false)
-		{
+		
 			initFrame.add(new JLabel("Enter the Server IP:"), BorderLayout.WEST);
 			JButton jbIp = new JButton("Enter");
-			JTextField jtIP = new JTextField("localhost");
+			final JTextField jtIP = new JTextField("localhost");
 			initFrame.add(jtIP, BorderLayout.CENTER);
 			initFrame.add(jbIp, BorderLayout.SOUTH);
 			initFrame.pack();
 			initFrame.setVisible(true);
-			
-	   	 	final String ipStr = jtIP.getText();
-			
+			initFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	   	 	
+			while(ipSet == false)
+			{
 	   	 	jbIp.addActionListener(new ActionListener() 
 			{
 		         public void actionPerformed(ActionEvent ae) 
 		         {
+		        	 final String ipStr = jtIP.getText();
 		        	 if(ipStr.equals(""))
 		        	 {
 		        		 ip = "localhost";
@@ -95,10 +96,11 @@ public class MyClient extends Thread implements ActionListener
    	 	initFrame.setVisible(false);
 		
 		try{
+			s = new Socket( ip, 16789);
 			new MyClient();
 			System.out.println("getLocalHost: "+InetAddress.getLocalHost() );
 			System.out.println("getByName:    "+InetAddress.getByName("localhost") );
-			s = new Socket( ip, 16789);
+			
 			
 			Thread serverLoop = new Thread();
 			serverLoop.start();
