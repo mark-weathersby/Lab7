@@ -17,6 +17,7 @@ public class MyClient extends Thread implements ActionListener
 	private JTextArea jtaMessage;
 	private JTextField jtfMessageInput;
 	private static String ip;
+	private static boolean ipSet = false;
 	
 	public MyClient()
 	{
@@ -60,6 +61,39 @@ public class MyClient extends Thread implements ActionListener
 	}
 	public static void main(String [] args)
 	{
+		JFrame initFrame = new JFrame("Please enter server IP");
+		
+		while(ipSet == false)
+		{
+			initFrame.add(new JLabel("Enter the Server IP:"), BorderLayout.WEST);
+			JButton jbIp = new JButton("Enter");
+			JTextField jtIP = new JTextField("localhost");
+			initFrame.add(jtIP, BorderLayout.CENTER);
+			initFrame.add(jbIp, BorderLayout.SOUTH);
+			initFrame.pack();
+			initFrame.setVisible(true);
+			
+	   	 	final String ipStr = jtIP.getText();
+			
+	   	 	jbIp.addActionListener(new ActionListener() 
+			{
+		         public void actionPerformed(ActionEvent ae) 
+		         {
+		        	 if(ipStr.equals(""))
+		        	 {
+		        		 ip = "localhost";
+		        		 ipSet = true;
+		        	 }
+		        	 else
+		        	 {
+		        		 ip = ipStr;
+		        		 ipSet = true;
+		        	 }
+		         }
+			});
+		}
+   	 	initFrame.setVisible(false);
+		
 		try{
 			ip = args[0];
 			new MyClient();
