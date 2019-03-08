@@ -30,7 +30,7 @@ public class MyMultiThreadedServer {
                 // try{
                 cs = ss.accept(); // wait for connection
                 String usernameString = "John";
-                ThreadServer ths = new ThreadServer(cs, usernameString );
+                ThreadServer ths = new ThreadServer(cs, usernameString);
                 clientList.add(ths);
                 ths.start();
             } // end while
@@ -52,7 +52,7 @@ public class MyMultiThreadedServer {
         String userName;
 
         public ThreadServer(Socket cs, String username) {
-            
+
             this.cs = cs;
             this.userName = username;
         }
@@ -72,27 +72,27 @@ public class MyMultiThreadedServer {
 
                 Thread testThread = new Thread() {
                     public void run() {
-                        //while (true) {
-
-                            try {
+                        try {
+                            String textString = "123";
+                            while ((textString = br.readLine()) != null) {
                                 clientMsg = br.readLine();
                                 System.out.println("Server read: " + clientMsg);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } // from client
 
-                            for (int i = 0; i < clientList.size(); i++) {
-                                System.out.println("Sent message to client number " + i);
-                                clientList.get(i).opw.println(userName + ": " + clientMsg);
-                                opw.flush();
+                                for (int i = 0; i < clientList.size(); i++) {
+                                    System.out.println("Sent message to client number " + i);
+                                    clientList.get(i).opw.println(userName + ": " + clientMsg);
+                                    opw.flush();
+                                }
                             }
-                        //}
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } // from client
                     }
 
                 };
                 testThread.start();
 
-                //opw.println(clientMsg.toUpperCase()); // to client
+                // opw.println(clientMsg.toUpperCase()); // to client
             } catch (IOException e) {
                 System.out.println("Inside catch");
                 e.printStackTrace();
