@@ -111,6 +111,7 @@ public class MyClient extends Thread implements ActionListener
 	{
 		try
 		{
+		    System.out.println("Button clicked");
 
 			OutputStream out = s.getOutputStream();
 			String temp = jtfMessageInput.getText();
@@ -136,6 +137,7 @@ public class MyClient extends Thread implements ActionListener
 				
 				while(true)
 				{
+				    System.out.println("Read Message");
 					jtaMessage.setText(jtaMessage.getText() + "\n" + bin.readLine());
 				}
 				
