@@ -95,11 +95,10 @@ public class MyClient extends Thread implements ActionListener
    	 	initFrame.setVisible(false);
 		
 		try{
-			ip = args[0];
 			new MyClient();
 			System.out.println("getLocalHost: "+InetAddress.getLocalHost() );
 			System.out.println("getByName:    "+InetAddress.getByName("localhost") );
-			s = new Socket( args[0], 16789);
+			s = new Socket( ip, 16789);
 			
 			Thread serverLoop = new Thread();
 			serverLoop.start();
