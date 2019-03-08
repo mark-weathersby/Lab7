@@ -102,8 +102,7 @@ public class MyClient extends Thread implements ActionListener
 			System.out.println("getByName:    "+InetAddress.getByName("localhost") );
 			
 			
-			Thread serverLoop = new Thread();
-			serverLoop.start();
+			
 		}
 		catch(UnknownHostException uhe) {
 			System.out.println("no host");
@@ -117,6 +116,8 @@ public class MyClient extends Thread implements ActionListener
 	   catch( ArrayIndexOutOfBoundsException aioobe ) {
 	 		System.out.println("\nUsage: java Day10Server hostname some-word");
 	 	}
+		thServ serverLoop = new thServ();
+		serverLoop.start();
 	}
 	
 	public synchronized void actionPerformed(ActionEvent ae)
@@ -137,22 +138,29 @@ public class MyClient extends Thread implements ActionListener
 		}
 	}
 	
-	public void run()
+	public class thServ extends Thread
 	{
-		try
+		public thServ()
 		{
-			InputStream in = s.getInputStream();
-			BufferedReader bin = new BufferedReader(new InputStreamReader(in));
 			
-			while(true)
+		}
+		public void run()
+		{
+			try
 			{
-				jtaMessage.setText(jtaMessage.getText() + "\n" + bin.readLine());
+				InputStream in = s.getInputStream();
+				BufferedReader bin = new BufferedReader(new InputStreamReader(in));
+				
+				while(true)
+				{
+					jtaMessage.setText(jtaMessage.getText() + "\n" + bin.readLine());
+				}
+				
+			} catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			
-		} catch (IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 }
