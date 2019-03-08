@@ -18,6 +18,7 @@ public class MyClient extends Thread implements ActionListener
 	private JTextField jtfMessageInput;
 	private static String ip;
 	private static boolean ipSet = false;
+	private static ThServ serverLoop;
 	
 	public MyClient()
 	{
@@ -47,6 +48,7 @@ public class MyClient extends Thread implements ActionListener
 			
 			s = new Socket("192.168.0.125", 16789);
 			System.out.println("Connected to " + s.getInetAddress());
+			serverLoop = new ThServ();
 		} 
 		catch (UnknownHostException e)
 		{
@@ -72,7 +74,7 @@ public class MyClient extends Thread implements ActionListener
 			initFrame.pack();
 			initFrame.setVisible(true);
 			initFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	   	 	
+			
 			while(ipSet == false)
 			{
 	   	 	jbIp.addActionListener(new ActionListener() 
@@ -102,7 +104,7 @@ public class MyClient extends Thread implements ActionListener
 			System.out.println("getByName:    "+InetAddress.getByName("localhost") );
 			
 			
-			
+			serverLoop.start();	
 		}
 		catch(UnknownHostException uhe) {
 			System.out.println("no host");
@@ -116,8 +118,7 @@ public class MyClient extends Thread implements ActionListener
 	   catch( ArrayIndexOutOfBoundsException aioobe ) {
 	 		System.out.println("\nUsage: java Day10Server hostname some-word");
 	 	}
-		thServ serverLoop = new thServ();
-		serverLoop.start();
+		
 	}
 	
 	public synchronized void actionPerformed(ActionEvent ae)
@@ -129,7 +130,7 @@ public class MyClient extends Thread implements ActionListener
 			String temp = jtfMessageInput.getText();
 			PrintWriter pout = new PrintWriter(out);
 			pout.println(temp);		// Writes some String to server
-			jtaMessage.setText(jtaMessage.getText()+ "\n" + temp);
+			//jtaMessage.setText(jtaMessage.getText()+ "\n" + temp);
 			pout.flush(); 					// forces the data through to server
 		} catch (IOException e)
 		{
@@ -138,12 +139,8 @@ public class MyClient extends Thread implements ActionListener
 		}
 	}
 	
-	public class thServ extends Thread
+	public class ThServ extends Thread
 	{
-		public thServ()
-		{
-			
-		}
 		public void run()
 		{
 			try
