@@ -22,8 +22,6 @@ public class MyClient extends Thread implements ActionListener
 	
 	public MyClient()
 	{
-		try
-		{	
 			JFrame mainFrame = new JFrame();
 			JPanel jpSouth = new JPanel();
 			JButton jbSend = new JButton("SEND");
@@ -46,20 +44,8 @@ public class MyClient extends Thread implements ActionListener
 			
 			jbSend.addActionListener(this);
 			
-			s = new Socket("192.168.0.125", 16789);
 			System.out.println("Connected to " + s.getInetAddress());
 			serverLoop = new ThServ();
-		} 
-		catch (UnknownHostException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		catch (IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	public static void main(String [] args)
 	{
@@ -121,7 +107,7 @@ public class MyClient extends Thread implements ActionListener
 		
 	}
 	
-	public synchronized void actionPerformed(ActionEvent ae)
+	public void actionPerformed(ActionEvent ae)
 	{
 		try
 		{
