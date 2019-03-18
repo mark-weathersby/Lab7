@@ -8,9 +8,14 @@ import javax.swing.JFrame;
 
 import java.io.*;
 
-/* SHOULD ONLY COMMIT TO GUI
-*/
-
+/**
+ * @author Jared Marcuccilli
+ * @author Mark Weathersby
+ * @author Jake Christoforo
+ * @author Colin Halter
+ * 
+ * @version 03182019
+ */
 public class MyClient extends Thread implements ActionListener {
     private static Socket s;
     private JTextArea jtaMessage;
