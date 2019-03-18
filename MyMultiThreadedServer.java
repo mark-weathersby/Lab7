@@ -84,7 +84,12 @@ public class MyMultiThreadedServer {
                                     opw.flush();
                                 }
                             }
-                        } catch (IOException e) {
+                        } 
+                        catch (SocketException se) {
+                            System.out.println("User left");
+                            // Need to remove user from arraylist
+                        }
+                        catch (IOException e) {
                             e.printStackTrace();
                         } // from client
                     }
@@ -93,10 +98,13 @@ public class MyMultiThreadedServer {
                 testThread.start();
 
                 // opw.println(clientMsg.toUpperCase()); // to client
-            } catch (IOException e) {
+            } 
+
+            catch (IOException e) {
                 System.out.println("Inside catch");
                 e.printStackTrace();
             }
+
         } // end while
 
     } // end class ThreadServer
