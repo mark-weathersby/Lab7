@@ -1,148 +1,249 @@
 import java.net.*;
+import java.io.*;
+import java.util.*;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-
-import javax.swing.*;
-
-import javax.swing.JFrame;
-
-import java.io.*;
+import javax.swing.text.*;
+import java.util.*;
 
 /**
- * @author Jared Marcuccilli
- * @author Mark Weathersby
+ * A multithreaded client that recieves messages from a server.
+ * 
  * @author Jake Christoforo
  * @author Colin Halter
+ * @author Jared Marcuccilli 
+ * @author Mark Weathersby
  * 
- * @version 03182019
+ * @version 03212019
  */
-public class MyClient extends Thread implements ActionListener {
-    private static Socket s;
-    private JTextArea jtaMessage;
-    private JTextField jtfMessageInput;
-    private static String ip;
-    private static boolean ipSet = false;
-    private static ThServ serverLoop;
 
-    public MyClient() {
-        JFrame mainFrame = new JFrame();
-        JPanel jpSouth = new JPanel();
-        JButton jbSend = new JButton("SEND");
-        jtaMessage = new JTextArea("Please enter sever IP in message box below.");
-        JScrollPane jsaScroll = new JScrollPane(jtaMessage);
-        jtfMessageInput = new JTextField();
-        // jtfMessageInput.setSize(10, 100);
-        jpSouth.setLayout(new BorderLayout());
-        mainFrame.add(jpSouth, BorderLayout.SOUTH);
-        mainFrame.add(jsaScroll, BorderLayout.CENTER);
-        jpSouth.add(jbSend, BorderLayout.CENTER);
-        jpSouth.add(jtfMessageInput, BorderLayout.NORTH);
-        jtaMessage.setSize(300, 300);
-        jtaMessage.setEditable(false);
-        jsaScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-        jsaScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        mainFrame.setSize(500, 500);
-        mainFrame.setVisible(true);
-        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        jbSend.addActionListener(this);
-
-        System.out.println("Connected to " + s.getInetAddress());
-        serverLoop = new ThServ();
-        serverLoop.start();
-    }
-
+/**
+ * Contains GUI functionality.
+ */
+public class MyClient extends JFrame implements ActionListener {
+    private BufferedReader bin = null;
+    private Socket s = null;
+    private Socket heartbeatSocket = null;
+    private OutputStream out = null;
+    private PrintWriter pout = null;
+    
+    private boolean connected = false;
+    
+    private JButton jbSend = null;
+    private JButton jbDisconnect = null;
+    private JTextArea jtaStream = null;
+    private JScrollPane jspStream = null;
+    private JTextField jtfMessage = null;
+    
+    /**
+     * Creates new instance of client.
+     */
     public static void main(String[] args) {
-        
-        
-        JFrame initFrame = new JFrame("Please enter server IP");
-
-        initFrame.add(new JLabel("Enter the Server IP:"), BorderLayout.WEST);
-        JButton jbIp = new JButton("Enter");
-        final JTextField jtIP = new JTextField("localhost");
-        initFrame.add(jtIP, BorderLayout.CENTER);
-        initFrame.add(jbIp, BorderLayout.SOUTH);
-        initFrame.pack();
-        initFrame.setVisible(true);
-        initFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        while (ipSet == false) {
-            jbIp.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent ae) {
-                    final String ipStr = jtIP.getText();
-                    if (ipStr.equals("")) {
-                        ip = "localhost";
-                        ipSet = true;
-                    } else {
-                        ip = ipStr;
-                        ipSet = true;
-                    }
-                }
-            });
-        }
-        initFrame.setVisible(false);
-
-        try {
-            s = new Socket(ip, 16789);
-            new MyClient();
-            
-            System.out.println("getLocalHost: " + InetAddress.getLocalHost());
-            System.out.println("getByName:    " + InetAddress.getByName("localhost"));
-
-            
-        } catch (ConnectException ce) {
-            System.out.println("Server is not open");
-            // Need to add a way for the panel to show again, to allow user to attempt to connect to a new server
-
-        } catch (UnknownHostException uhe) {
-            System.out.println("no host");
-            uhe.printStackTrace();
-        } catch (IOException ioe) {
-            System.out.println("IO error");
-            ioe.printStackTrace();
-        } catch (ArrayIndexOutOfBoundsException aioobe) {
-            System.out.println("\nUsage: java Day10Server hostname some-word");
-        }
-
+        new MyClient();
     }
 
+    /**
+     * Default constructor creates GUI 
+     */
+    public MyClient() {
+        super("Chat Client");
+        setLayout(new BorderLayout());
+        setSize(500, 400);
+        addWindowListener(new WindowAdapter()
+        {
+            public void windowClosing(WindowEvent e)
+            {
+                disconnect();
+            }
+        });
+        
+        jtaStream = new JTextArea();
+        jtaStream.setSize(500, 300);
+        jtaStream.setEditable(false);
+        jspStream = new JScrollPane(jtaStream);
+        jspStream.setSize(500, 300);
+        
+        add(jspStream, BorderLayout.CENTER);
+        
+        JPanel jpSouth = new JPanel();
+        jpSouth.setLayout(new BorderLayout());
+        
+        
+        jbSend = new JButton("Send");
+            jbSend.addActionListener(this);
+            jpSouth.add(jbSend, BorderLayout.EAST);
+            
+        jbDisconnect = new JButton("Disconnect");
+            jbDisconnect.setEnabled(false);
+            jbDisconnect.addActionListener(this);
+            jpSouth.add(jbDisconnect, BorderLayout.WEST);
+            
+        jtfMessage = new JTextField();
+            jtfMessage.addActionListener(this);
+            jpSouth.add(jtfMessage, BorderLayout.CENTER);
+            
+        add(jpSouth, BorderLayout.SOUTH);
+        
+        jtaStream.setText("To connect, enter the IP of the server and press Send.");
+        
+        setLocationRelativeTo(null);
+        setVisible(true);
+        
+    }
+    
+    /**
+     * Handles action events for buttons. Will either call sendMessage() or disconnect from server.
+     */
     public void actionPerformed(ActionEvent ae) {
-        try {
-            System.out.println("Button clicked");
-
-            OutputStream out = s.getOutputStream();
-            String temp = jtfMessageInput.getText();
-            PrintWriter pout = new PrintWriter(out);
-            pout.println(temp); // Writes some String to server
-            // jtaMessage.setText(jtaMessage.getText()+ "\n" + temp);
-            pout.flush(); // forces the data through to server
-
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        if (ae.getSource() == jbSend || ae.getSource() == jtfMessage) {
+            sendMessage();
+        } else if (ae.getSource() == jbDisconnect && connected) {
+            disconnect();
+        }   
     }
-
-    public class ThServ extends Thread {
+    
+    /**
+     * Listens for incoming messages
+     */
+    public class HeartbeatThread extends Thread {
+        private BufferedReader heartbeatBin = null;
+        private Socket hs;
+        
+        public HeartbeatThread(Socket _heartbeatSocket) {
+            try {
+               InputStream heartbeatIn = _heartbeatSocket.getInputStream();
+               heartbeatBin = new BufferedReader(new InputStreamReader(heartbeatIn));
+               hs = _heartbeatSocket;
+            } catch (IOException ioe) {
+               ioe.printStackTrace();
+            }   
+        }
+        
+        /**
+         * Listens for the server closing.
+         */
         public void run() {
             try {
-                while (true) {
-                    InputStream in = s.getInputStream();
-                    BufferedReader bin = new BufferedReader(new InputStreamReader(in));
+               while (true) {
+                  if (heartbeatBin.readLine() == null) {
+                     jbSend.setEnabled(false);
+                     jbDisconnect.setEnabled(false);
+                     jtaStream.append("\nServer disconnected. (heartbeat)");
+                     out.close();
+                     pout.close();
+                     s.close();
+                     connected = false;
+                     return;
+                  }
+               }
+            } catch (IOException ioe) {
+               ioe.printStackTrace();
+            }
+        }       
+    }
+    
+    /**
+     * Connects to the server.
+     * @param _server server ip.
+     */
+    public void connect(String _server) {
+        try {
+            s = new Socket(_server, 16789);
+            heartbeatSocket = new Socket(_server, 16790);
+            
+            HeartbeatThread ht = new HeartbeatThread(heartbeatSocket);
+            ht.start();
+            
+            MyThread t = new MyThread();
+            t.start();
+   
+            out = s.getOutputStream();
+            pout = new PrintWriter(out);
+            
+            connected = true;
+            jbDisconnect.setEnabled(true);
+            
+        } catch (UnknownHostException uhe) {
+            jtaStream.append("\n\nUnknown host: " + _server);
+            jtaStream.append("\nPlease enter another hostname.");
+            jtaStream.setCaretPosition(jtaStream.getDocument().getLength());
+        } catch (ConnectException ce) {
+            jtaStream.append("\n\nConnection refused. (is the server running?)");
+            jtaStream.setCaretPosition(jtaStream.getDocument().getLength());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(0);
+        }
+    }
+    
+    /**
+     * Disconnects client from server.
+     */
+    public void disconnect() {
+        jtaStream.append("\nDisconnecting from server...");
+        try {
+            Thread.sleep(100);
+            if (connected) {
+                pout.println("Disconnect");
+                pout.flush();   
+                out.close();
+                pout.close();
+                s.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.exit(0);
+    }
+    
+    /**
+     * Sends message from jtfMessage to server.
+     */
+    public void sendMessage() {
+        if (connected) {
+            String message = jtfMessage.getText();
+            if (message.equals("Disconnect")) {
+               disconnect();
+            }
+            pout.println(message);
+            pout.flush();
+        } else {
+            connect(jtfMessage.getText());
+        }
+        jtfMessage.setText("");
+    }
 
-                    System.out.println("Read Message");
-                    String message = bin.readLine();
-                    System.out.println(message);
-                    jtaMessage.setText(jtaMessage.getText() + "\n" + message);
-                }
-
-            } catch (SocketException se) {
-                System.out.println("Server closed");
-                JOptionPane.showMessageDialog(null, "Server has closed");
-
+    /**
+     * Class listens for incoming message.
+     */
+    public class MyThread extends Thread {
+    	
+    	/**
+    	 * Default constructor creates Buffered Reader and Input Stream.
+    	 */
+        public MyThread() {
+            try {
+               InputStream in = s.getInputStream();
+               bin = new BufferedReader(new InputStreamReader(in));
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+               e.printStackTrace();
+            }
+        }
+/**
+ * Reads message and appends to JTextArea.
+ */
+        public void run() {
+
+            while (true) {
+                try {
+                    if (bin.ready()) {
+                        jtaStream.append("\n" + bin.readLine());
+                        jtaStream.setCaretPosition(jtaStream.getDocument().getLength());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

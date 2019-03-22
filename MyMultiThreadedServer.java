@@ -1,111 +1,212 @@
 import java.net.*;
-import java.util.Vector;
-
-import org.omg.CORBA.PUBLIC_MEMBER;
-
 import java.io.*;
+import java.util.*;
 
-/* MyClient - Demo of client / server network communication
-	by: Michael Floeser
-*/
+/**
+ * A multithreaded server to interact with many clients.
+ * 
+ * @author Jake Christoforo
+ * @author Colin Halter
+ * @author Jared Marcuccilli 
+ * @author Mark Weathersby
+ * 
+ * @version 03212019
+ */
 
-public class MyMultiThreadedServer {
-    public static void main(String[] args) {
-        new MyMultiThreadedServer();
-    }
+/**
+ * Creates server and waits for connections.
+ */
+public class MyMultiThreadedServer{
+   private String clientMsg;
+   private ArrayList<Thread> threads = new ArrayList<Thread>();
+   private ArrayList<PrintWriter> writers = new ArrayList<PrintWriter>();
+   private int numThreads = -1;
+   private HeartbeatThread ht = null;
 
-    Vector<ThreadServer> clientList = new Vector<ThreadServer>();
-
-    public MyMultiThreadedServer() {
-        ServerSocket ss = null;
-
-        try {
-            System.out.println("getLocalHost: " + InetAddress.getLocalHost());
-            System.out.println("getByName:    " + InetAddress.getByName("localhost"));
-
-            ss = new ServerSocket(16789);
-            Socket cs = null;
-            while (true) { // run forever once up
-
-                // try{
-                cs = ss.accept(); // wait for connection
-                String usernameString = "John";
-                ThreadServer ths = new ThreadServer(cs, usernameString);
-                clientList.add(ths);
-                ths.start();
-            } // end while
-        } catch (BindException be) {
-            System.out.println("Server already running on this computer, stopping.");
-        } catch (IOException ioe) {
-            System.out.println("IO Error");
-            ioe.printStackTrace();
-        }
-
-    } // end main
-
-    class ThreadServer extends Thread {
-        Socket cs;
-        private boolean newUser = true;
-        BufferedReader br;
-        PrintWriter opw;
-        String clientMsg;
-        String userName;
-
-        public ThreadServer(Socket cs, String username) {
-
-            this.cs = cs;
-            this.userName = username;
-        }
-
-        public void run() {
-
-            try {
-                br = new BufferedReader(new InputStreamReader(cs.getInputStream()));
-                opw = new PrintWriter(new OutputStreamWriter(cs.getOutputStream()));
-
-                System.out.println(newUser);
-                if (newUser == true) {
-                    newUser = false;
-                    opw.println("Welcome to the server");
-
-                }
-
-                Thread testThread = new Thread() {
-                    public void run() {
-                        try {
-                            String textString = "123";
-                            while ((textString = br.readLine()) != null) {
-                                clientMsg = br.readLine();
-                                System.out.println("Server read: " + clientMsg);
-
-                                for (int i = 0; i < clientList.size(); i++) {
-                                    System.out.println("Sent message to client number " + i);
-                                    clientList.get(i).opw.println(userName + ": " + clientMsg);
-                                    opw.flush();
-                                }
-                            }
-                        } 
-                        catch (SocketException se) {
-                            System.out.println("User left");
-                            // Need to remove user from arraylist
-                        }
-                        catch (IOException e) {
-                            e.printStackTrace();
-                        } // from client
-                    }
-
-                };
-                testThread.start();
-
-                // opw.println(clientMsg.toUpperCase()); // to client
-            } 
-
-            catch (IOException e) {
-                System.out.println("Inside catch");
-                e.printStackTrace();
+   /**
+    * Main method creates instance of MyMultiThreadedServer.
+    * @Param args command line arguments.
+    */
+   public static void main(String [] args) {
+      new MyMultiThreadedServer();
+   }
+	/**
+	 * Default constructor sets up program. Creates sockets and handles thread creation.
+	 */
+   public MyMultiThreadedServer() {
+   
+      try {
+         System.out.println("Starting server...");
+         System.out.println("getLocalHost: "+InetAddress.getLocalHost() );
+         System.out.println("getByName:    "+InetAddress.getByName("localhost") );
+      
+         ServerSocket ss = new ServerSocket(16789);
+         Socket cs = null;
+         
+         ServerSocket hss = new ServerSocket(16790);
+         Socket hcs = hss.accept();
+         
+         ht = new HeartbeatThread(hcs);
+            ht.start();
+         
+         while(true){ // run forever once up
+            System.out.println("Waiting for a client...");
+            cs = ss.accept(); // wait for connection
+            ThreadServer ths = new ThreadServer(cs);
+            threads.add(ths);
+            ths.start();
+            System.out.println("Client connected.");
+            
+            
+         }
+      }
+      catch( BindException be ) {
+         System.out.println("Server already running on this computer, stopping.");
+      }
+      catch( IOException ioe ) {
+         System.out.println("IO Error");
+         ioe.printStackTrace();
+      }
+   
+   } // end main
+	/**
+	 * Class waits for message.
+	 */
+   public class HeartbeatThread extends Thread {
+      private Socket hs;
+      private PrintWriter hpw;
+      
+      public HeartbeatThread(Socket _heartbeatSocket) {
+            hs = _heartbeatSocket;
+      }
+      
+      /**
+       * Waits for new message and sends to clients. Called by start() method.
+       */
+      public void run() {
+         try {
+            hpw = new PrintWriter(new OutputStreamWriter(hs.getOutputStream()));
+            while (true) {
+               hpw.println("");
+               hpw.flush();
+               Thread.sleep(100);
             }
-
-        } // end while
-
-    } // end class ThreadServer
+         } catch (IOException ioe) {
+            ioe.printStackTrace();
+         } catch (InterruptedException ie) {
+         
+         }
+      }
+   }
+   
+   /**
+    * ThreadServer Class serves a single client.
+    */
+   public class ThreadServer extends Thread {
+      private Socket cs;
+      private BufferedReader br;
+      private PrintWriter opw;
+      private String name;
+      private boolean keepGoing = true;
+   
+      /**
+       * Default constructor.
+       * @param cs client socket.
+       */
+      public ThreadServer(Socket _cs) {
+         cs = _cs;
+         name = "";
+      }
+   	
+      /**
+       * Handles connections and user interactions.
+       */
+      public void run() {
+         
+         try {
+            
+            
+            br = new BufferedReader(new InputStreamReader( cs.getInputStream()));
+            opw = new PrintWriter(new OutputStreamWriter(cs.getOutputStream()));
+           
+            opw.println("You have connected to the server!");
+           
+            while (name.equals("")) {
+               if (name.equals("")) {
+                  opw.println("Please enter your name:");
+                  opw.flush();
+               }
+               name = br.readLine();
+            }
+           
+            if (name.equals("Disconnect")) {
+               opw.close();
+               br.close();
+               cs.close();
+               writers.remove(opw);
+               System.out.println("Client left before sending name.");
+               return;
+            }
+            send(name + " joined the server.");
+           
+            opw.println("Welcome to the server " + name + "!");
+            opw.flush();
+           
+            writers.add(opw);
+           
+            while (keepGoing) {
+               synchronized(this) {
+                  try {		
+                     clientMsg = br.readLine();					// from client
+                     if (clientMsg.equals("Disconnect")) {
+                        keepGoing = false;
+                        writers.remove(opw);
+                        send(name + " left the server. (disconnect msg)");
+                        opw.close();
+                        br.close();
+                        cs.close();
+                        ht.interrupt();
+                        return;
+                     } else {
+                        send(name + ": " + clientMsg);
+                     }
+                  } catch (SocketException se) {
+                     writers.remove(opw);
+                     send(name + " left the server. (se)");
+                     opw.close();
+                     br.close();
+                     cs.close();
+                     ht.interrupt();
+                     return;
+                  } catch (NullPointerException npe) {
+                     writers.remove(opw);
+                     send(name + " left the server. (npe)");
+                     opw.close();
+                     br.close();
+                     cs.close();
+                     ht.interrupt();
+                     return;
+                  } catch (Exception e) {
+                     e.printStackTrace();
+                  }
+               }                        			
+            }
+         } catch(IOException e) { 
+            e.printStackTrace();
+         } catch (NullPointerException npe) {
+            System.out.println("Client left abnormally before sending name.");
+         }
+      } // end while
+      
+      /**
+       * Sends a message to each connected client.
+       */
+      public void send(String _msg) {
+         for (PrintWriter opw : writers) {
+            opw.println(_msg); // send message to every client
+            opw.flush();
+         }
+         System.out.println("> " +_msg + " (sent to " + writers.size() + " clients)");
+      }
+   } // end class ThreadServer 
 } // end MyMultiThreadedServer
